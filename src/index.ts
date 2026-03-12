@@ -14,6 +14,7 @@ app.use(express.json());
 app.post("/api/v1/signup", async (req, res)=>{
      const requiredBody = z.object({
     email: z.string().email(),
+    username: z.string().min(3),
 
     password: z.string()
         .min(6, "Password must be at least 6 characters")
@@ -22,8 +23,6 @@ app.post("/api/v1/signup", async (req, res)=>{
             "Password must contain uppercase, lowercase, number and special character"
         ),
 
-    firstName: z.string().min(1),
-    lastName: z.string().min(1)
 
 
 });
