@@ -9,6 +9,7 @@ import { userModel } from "./db.js";
 dotenv.config();
 const app = express();
 connectDB();
+app.use(express.json());
 
 app.post("/api/v1/signup", async (req, res)=>{
      const requiredBody = z.object({
@@ -68,7 +69,10 @@ if(!parsedData.success){
 })
 
 app.post("/api/v1/signin", (req, res)=>{
-    
+    const email = req.body.email;
+    const password = req.body.password;
+
+
 })
 
 app.post("/api/v1/content", (req, res)=>{
