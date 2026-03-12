@@ -1,6 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
+import cookieParser from "cookie-parser";
 import {z} from "zod";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
@@ -10,6 +11,7 @@ dotenv.config();
 const app = express();
 connectDB();
 app.use(express.json());
+app.use(cookieParser());
 
 app.post("/api/v1/signup", async (req, res)=>{
      const requiredBody = z.object({
@@ -67,9 +69,48 @@ if(!parsedData.success){
 
 })
 
-app.post("/api/v1/signin", (req, res)=>{
+app.post("/api/v1/signin", async (req, res)=>{
     const email = req.body.email;
     const password = req.body.password;
+
+   try {
+    const user = await userModel.findOne({email});
+    if(!user || !user.password){ //!user.password i wrote this because of typescript typesafety
+        return res.status(403).json({
+            message: "User does not exists in Database"
+        })
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if(!isMatch){
+        return res.status(403).json({
+            message: "Invalid Credentials"
+        });
+    }
+
+   const token = jwt.sign({
+        userId: user._id
+   },process.env.JWT_USER_SECRET as string)
+
+        res.cookie("token", token,{
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax",
+            maxAge: 3 * 24 * 60 * 60 * 1000
+
+        });
+        res.json({
+            message: "Logged in Successfully"
+        })
+   } catch (error) {
+        res.status(403).json({
+            message: "Error while logging in"
+        })
+   }
+
+
+
+    
 
 
 })
