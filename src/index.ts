@@ -134,10 +134,11 @@ app.use(authMiddleware);
 
 app.post("/api/v1/add-content", async (req, res)=>{
     const link = req.body.link;
-    const type = req.body.type;
+    const title = req.body.title;
     
    try {
      await contentModel.create({
+        title,
         link,
         //@ts-ignore
         type,
@@ -159,7 +160,7 @@ app.get("/api/v1/content", async (req, res)=>{
     //@ts-ignore
     const userId = req.userId;
     try {
-        const content = await contentModel.findOne({
+        const content = await contentModel.find({
         userId: userId
     }).populate("userId", "username")
     res.json({
@@ -172,9 +173,32 @@ app.get("/api/v1/content", async (req, res)=>{
     }
 })
 
-app.delete("/api/v1/content", (req, res)=>{
-    
-})
+app.delete("/api/v1/content", async (req, res) => {
+    const contentId = req.body.contentId;
+
+    try {
+        const result = await contentModel.deleteOne({
+            _id: contentId,
+            //@ts-ignore
+            userId: req.userId
+        });
+
+        if (result.deletedCount === 0) {
+            return res.status(404).json({
+                message: "Content not found"
+            });
+        }
+
+        res.json({
+            message: "Content Deleted Successfully"
+        });
+
+    } catch (error) {
+        res.status(403).json({
+            message: "Error while deleting content"
+        });
+    }
+});
 
 app.post("/api/v1/brain/share", (req, res)=>{
 
