@@ -4,10 +4,11 @@ import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 import {z} from "zod";
 import dotenv from "dotenv";
+dotenv.config();
 import bcrypt from "bcrypt";
 import { connectDB } from "./db.js";
 import { userModel } from "./db.js";
-dotenv.config();
+
 const app = express();
 connectDB();
 app.use(express.json());
@@ -113,6 +114,19 @@ app.post("/api/v1/signin", async (req, res)=>{
     
 
 
+})
+
+app.post("/api/v1/logout",(req, res)=>{
+    try {
+        res.clearCookie("token");
+        res.json({
+            message: "Logged Out"
+        })
+    } catch (error) {
+        res.status(403).json({
+            message: "Error while logging out"
+        })
+    }
 })
 
 app.post("/api/v1/content", (req, res)=>{
