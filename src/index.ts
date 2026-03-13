@@ -6,7 +6,7 @@ import {z} from "zod";
 import dotenv from "dotenv";
 dotenv.config();
 import bcrypt from "bcrypt";
-import { connectDB } from "./db.js";
+import { connectDB, contentModel } from "./db.js";
 import { userModel } from "./db.js";
 import { authMiddleware } from "./middleware.js";
 
@@ -132,8 +132,27 @@ app.post("/api/v1/logout",(req, res)=>{
 
 app.use(authMiddleware);
 
-app.post("/api/v1/content", (req, res)=>{
+app.post("/api/v1/add-content", async (req, res)=>{
+    const link = req.body.link;
+    const type = req.body.type;
     
+   try {
+     await contentModel.create({
+        link,
+        //@ts-ignore
+        type,
+        //@ts-ignore
+        userId: req.userId,
+        tage: []
+    })
+    res.json({
+        message: "Content added Successfully"
+    })
+   } catch (error) {
+    res.status(403).json({
+        message: "Error while adding content"
+    })
+   }
 })
 
 app.get("/api/v1/content", (req, res)=>{
