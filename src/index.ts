@@ -8,6 +8,7 @@ dotenv.config();
 import bcrypt from "bcrypt";
 import { connectDB } from "./db.js";
 import { userModel } from "./db.js";
+import { authMiddleware } from "./middleware.js";
 
 const app = express();
 connectDB();
@@ -128,6 +129,8 @@ app.post("/api/v1/logout",(req, res)=>{
         })
     }
 })
+
+app.use(authMiddleware);
 
 app.post("/api/v1/content", (req, res)=>{
     
