@@ -155,8 +155,21 @@ app.post("/api/v1/add-content", async (req, res)=>{
    }
 })
 
-app.get("/api/v1/content", (req, res)=>{
-    
+app.get("/api/v1/content", async (req, res)=>{
+    //@ts-ignore
+    const userId = req.userId;
+    try {
+        const content = await contentModel.findOne({
+        userId: userId
+    }).populate("userId", "username")
+    res.json({
+        content
+    })
+    } catch (error) {
+        res.status(403).json({
+            message: "Error fetching the content"
+        })
+    }
 })
 
 app.delete("/api/v1/content", (req, res)=>{
