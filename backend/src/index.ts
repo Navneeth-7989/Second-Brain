@@ -6,9 +6,9 @@ import {z} from "zod";
 import dotenv from "dotenv";
 dotenv.config();
 import bcrypt from "bcrypt";
-import { connectDB, contentModel } from "./db.js";
-import { userModel } from "./db.js";
+import { connectDB, contentModel, LinkModel, userModel } from "./db.js";
 import { authMiddleware } from "./middleware.js";
+import { random } from "./util.js";
 
 const app = express();
 connectDB();
@@ -26,9 +26,6 @@ app.post("/api/v1/signup", async (req, res)=>{
             /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/,
             "Password must contain uppercase, lowercase, number and special character"
         ),
-
-
-
 });
 const parsedData = requiredBody.safeParse(req.body);
 if(!parsedData.success){
@@ -130,11 +127,12 @@ app.post("/api/v1/logout",(req, res)=>{
     }
 })
 
-app.use(authMiddleware);
 
-app.post("/api/v1/add-content", async (req, res)=>{
+
+app.post("/api/v1/add-content",authMiddleware,  async (req, res)=>{
     const link = req.body.link;
     const title = req.body.title;
+    const type = req.body.type;
     
    try {
      await contentModel.create({
@@ -142,9 +140,9 @@ app.post("/api/v1/add-content", async (req, res)=>{
         link,
         //@ts-ignore
         type,
-        //@ts-ignore
+         //@ts-ignore
         userId: req.userId,
-        tage: []
+        tags: []
     })
     res.json({
         message: "Content added Successfully"
@@ -156,7 +154,7 @@ app.post("/api/v1/add-content", async (req, res)=>{
    }
 })
 
-app.get("/api/v1/content", async (req, res)=>{
+app.get("/api/v1/content", authMiddleware,  async (req, res)=>{
     //@ts-ignore
     const userId = req.userId;
     try {
@@ -173,7 +171,7 @@ app.get("/api/v1/content", async (req, res)=>{
     }
 })
 
-app.delete("/api/v1/content", async (req, res) => {
+app.delete("/api/v1/content", authMiddleware,  async (req, res) => {
     const contentId = req.body.contentId;
 
     try {
@@ -200,11 +198,76 @@ app.delete("/api/v1/content", async (req, res) => {
     }
 });
 
-app.post("/api/v1/brain/share", (req, res)=>{
-
+app.post("/api/v1/brain/share",authMiddleware,  async (req, res)=>{
+    const share = req.body.share === true;
+    try {
+        if(share){
+            const existingLink = await LinkModel.findOne({
+                //@ts-ignore
+                userId: req.userId
+            });
+            if(existingLink){
+                res.json({
+                    hash: existingLink.hash
+                })
+                return;
+            }
+            const hash = random(10)
+            await LinkModel.create({
+                //@ts-ignore
+                userId: req.userId,
+                hash: hash
+            })
+            res.json({
+                message: "/share/" + hash
+            })
+        } else{
+           await LinkModel.deleteOne({
+                //@ts-ignore
+                userId: req.userId
+                    
+                
+            });
+        }
+        res.json({
+            message: "Removed link"
+        })
+    } catch (error) {
+        res.status(403).json({
+            message: "Error while creating the link"
+        })
+    }
 })
 
-app.get("/api/v1/brain/:share", (req, res)=>{
+app.get("/api/v1/brain/:shareLink", async (req, res)=>{
+    const hash = req.params.shareLink;
+try {
+    const link = await LinkModel.findOne({
+        hash
+    });
+    if(!link){
+        return res.status(403).json({
+            message: "Sorry incorrect Url"
+        })
+    }
+    const content = await contentModel.find({
+        userId: link.userId
+
+    })
+
+    const user = await userModel.findOne({
+        _id: link.userId
+    })
+
+    res.json({
+        username: user?.username,
+        content: content
+    })
+} catch (error) {
+    res.status(403).json({
+        message: "Error"
+    })
+}
 
 })
 

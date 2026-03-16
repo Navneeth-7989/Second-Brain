@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
-import { required } from "zod/mini";
+import { hash, string } from "zod";
+
 
 
 export const connectDB = async () => {
@@ -27,8 +28,15 @@ const ContentSchema = new Schema({
   userId: {type: mongoose.Types.ObjectId, ref: "User", required: true}
 })
 
+const LinkSchema = new Schema({
+  hash: string,
+   userId: {type: mongoose.Types.ObjectId, ref: "User", required: true, unique: true}
+
+}) 
+
 
 
 export const userModel = mongoose.model("User", UserSchema);
 export const contentModel = mongoose.model("Content", ContentSchema);
+export const LinkModel = mongoose.model("Links", LinkSchema);
 
