@@ -8,11 +8,13 @@ import { PlusIcon } from "../icons/PlusIcon"
 import { ShareIcon } from "../icons/ShareIcon"
 import { SideBar } from "../components/Sidebar"
 import { useContent } from "../hooks/useContent"
+import axios from "axios"
 
  export function Dashboard() {
 
   const [modalOpen, setModelOpen] = useState(false);
   const {contents, refresh} = useContent();
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(()=>{
     refresh();
@@ -29,7 +31,17 @@ import { useContent } from "../hooks/useContent"
           <Button onClick={() => {
             setModelOpen(true);
           }} startIcon={<PlusIcon />} variant="primary" text={"Add content"} />
-          <Button startIcon={<ShareIcon />} variant="secondary" text={"Share Brain"} />
+          <Button onClick={async ()=>{
+        const response = await axios.post(`${BACKEND_URL}/api/v1/brain/share`,{
+              share: true
+            }
+            ,{
+              withCredentials: true
+            }
+          );
+          const shareUrl = `http://localhost:5183/share/${response.data.hash}`;
+          alert(shareUrl);
+          }} startIcon={<ShareIcon />} variant="secondary" text={"Share Brain"} />
         </div>
         <div className="flex gap-4 flex-wrap">
           {contents.map(({type, link, title}) => <Card
