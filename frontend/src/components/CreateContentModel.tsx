@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { CrossIcon } from "../icons/CrossIcon";
 import { Button } from "./Button";
 import { Input } from "./Input";
+import axios from "axios";
 
 enum ContentType {
     Youtube = "youtube",
@@ -12,15 +13,29 @@ export function CreateContentModal({ open, onClose }) {
     const titleRef = useRef<HTMLInputElement>();
     const linkRef = useRef<HTMLInputElement>();
     const [type, setType] = useState(ContentType.Youtube);
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-    function addContent() {
+
+   async function addContent() {
         const title = titleRef.current?.value;
         const link = linkRef.current?.value;
-
+        await axios.post(`${BACKEND_URL}/api/v1/add-content`,{
+            link,
+            title,
+            type
+        }, {
+            withCredentials: true
+        })
+        onClose();
     }
     return <div>
-        {open && <div className="w-screen h-screen bg-slate-500 fixed top-0 left-0
+        {open && <div>
+             <div className="w-screen h-screen bg-slate-500 fixed top-0 left-0
          opacity-60 flex justify-center">
+           
+        </div>
+        <div className="w-screen h-screen  fixed top-0 left-0
+        flex justify-center">
             <div className="flex flex-col justify-center">
                 <span className="bg-white opacity-100 p-4 rounded ">
                     <div className="flex justify-end">
@@ -48,6 +63,9 @@ export function CreateContentModal({ open, onClose }) {
                     </div>
                 </span>
             </div>
+
+            </div>
+         
         </div>}
     </div>
 }

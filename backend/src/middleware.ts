@@ -28,7 +28,7 @@ export const authMiddleware = (
 
   } catch (error) {
 
-    res.status(403).json({
+     return res.status(403).json({
       message: "Invalid token"
     });
 
