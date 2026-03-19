@@ -1,4 +1,10 @@
 import express from "express";
+const app = express();
+import cors from "cors"
+app.use(cors({
+    origin: "http://localhost:5173",
+    credentials: true
+}));
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
@@ -10,10 +16,12 @@ import { connectDB, contentModel, LinkModel, userModel } from "./db.js";
 import { authMiddleware } from "./middleware.js";
 import { random } from "./util.js";
 
-const app = express();
+
+
 connectDB();
 app.use(express.json());
 app.use(cookieParser());
+
 
 app.post("/api/v1/signup", async (req, res)=>{
      const requiredBody = z.object({
